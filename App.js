@@ -1,32 +1,76 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, View, FlatList, Button } from 'react-native';
+
+import GoalItem from './components/GoalItem';
+import GoalInput from './components/GoalInput';
 
 export default function App() {
+  const [ modalIsVisible, setModalIsVisible ] = useState(false);
+  const [ courseGoals, setCourseGoals ] = useState([]);
+
+  function startAddGoalHandler(){
+    setModalIsVisible(true);
+  }
+
+  function endAddGoalHandler(){
+    setModalIsVisible(false);
+  }
+
+  function addGoalHandler(inputText) {
+    setCourseGoals(
+      (currentCourseGoals) => [
+        ...currentCourseGoals, 
+        {text: inputText, id: Math.random().toString()},
+      ]
+    );
+    endAddGoalHandler();
+  };
+
+  function deleteGoalHandler(id){
+    setCourseGoals(courseGoals => {
+      return courseGoals.filter((goal) => goal.id !== id);
+    });
+  }
+
   return (
-    <View style={styles.container}>
-      <View style={styles.inputRow}>
-        <TextInput placeholder="Digite um objetivo"></TextInput>
-        <Button title="+Objetivo"></Button>
+    <>
+      <StatusBar style="light" />
+      <View style={styles.container}>
+        <Button title='+ Objetivo' color="#5e0acc" onPress={startAddGoalHandler} />
+        <GoalInput visible={modalIsVisible} 
+        onAddGoal={addGoalHandler} 
+        onCancel={endAddGoalHandler} />
+        <View style={styles.goalsContainer}>
+          <FlatList data={courseGoals} renderItem={
+            (item) => {
+              return (
+              <GoalItem 
+                text={item.item.text} 
+                id={item.item.id}
+                onDeleteItem={deleteGoalHandler}
+              />
+              );
+            }
+          } 
+          keyExtractor={(item, index) => {
+            return item.id;
+          }}
+          alwaysBounceVertical={false}/>
+        </View>
       </View>
-      <View>
-        <Text>Lista de Objetivos</Text>
-      </View>
-      <StatusBar style="auto" />
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 50,
+    flex: 1,
+    paddingTop: 50,
+    paddingHorizontal: 60,
+    backgroundColor: '#1e085a',
   },
-  inputRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#cccccc',
-    width: '80%',
+  goalsContainer: {
+    flex: 6
   },
 });
